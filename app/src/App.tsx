@@ -5,8 +5,30 @@ import { Family } from './components/Family';
 import { Home } from './components/Home';
 import { Onboarding } from './components/Onboarding';
 import { Timeline } from './components/Timeline';
-import { useAppState } from './lib/store';
-import type { FamilyEvent } from './lib/types';
+import type { Family as FamilyInfo } from './lib/cloud';
+import type { SyncStatus } from './lib/useCloudState';
+import type { AppState, FamilyEvent } from './lib/types';
+
+export interface CloudInfo {
+  family: FamilyInfo;
+  email: string;
+  status: SyncStatus;
+  signOut: () => void;
+}
+
+interface Props {
+  state: AppState;
+  update: (fn: (s: AppState) => AppState) => void;
+  /** Present in cloud mode (shared family space). */
+  cloud?: CloudInfo;
+}
+
+const STATUS_LABEL: Record<SyncStatus, string> = {
+  loading: 'Syncing…',
+  saving: 'Saving…',
+  saved: '✓ Synced',
+  offline: '⚠︎ Offline, will retry',
+};
 
 type Tab = 'home' | 'add' | 'plan' | 'family';
 
@@ -17,13 +39,13 @@ const TABS: { id: Tab; icon: string; label: string }[] = [
   { id: 'family', icon: '👨‍👩‍👦‍👦', label: 'Family' },
 ];
 
-export default function App() {
-  const [state, update] = useAppState();
+export default function App({ state, update, cloud }: Props) {
   const [tab, setTab] = useState<Tab>('home');
   const [editing, setEditing] = useState<FamilyEvent | null>(null);
 
   if (!state.onboarded) {
-    return <main className="page"><Onboarding state={state} update={update} /></main>;
+    if (cloud?.status === 'loading') return <main className="page"><p className="muted center">Loading your family…</p></main>;
+    return <main className="page"><Onboarding state={state} update={update} cloud={!!cloud} /></main>;
   }
 
   const isNew = editing && !state.events.some((e) => e.id === editing.id);
@@ -31,7 +53,10 @@ export default function App() {
   return (
     <>
       <header className="topbar">
-        <span className="brand">🏡 Family Huddle</span>
+        <span className="brand">
+          🏡 {cloud?.family.name ?? 'Family Huddle'}
+          {cloud && <span className={`sync sync-${cloud.status}`} role="status">{STATUS_LABEL[cloud.status]}</span>}
+        </span>
         <button className="btn primary" onClick={() => setEditing(newEvent())}>+ Event</button>
       </header>
 
@@ -47,9 +72,9 @@ export default function App() {
             }))}
           />
         )}
-        {tab === 'add' && <AddStuff state={state} update={update} onDone={() => setTab('home')} />}
+        {tab === 'add' && <AddStuff state={state} update={update} cloud={!!cloud} onDone={() => setTab('home')} />}
         {tab === 'plan' && <Timeline state={state} onEdit={setEditing} />}
-        {tab === 'family' && <Family state={state} update={update} />}
+        {tab === 'family' && <Family state={state} update={update} cloud={cloud} />}
       </main>
 
       <nav className="tabbar" aria-label="Main">

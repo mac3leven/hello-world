@@ -244,3 +244,11 @@ textarea { resize: vertical; }
   .row:not(.tight) { flex-direction: column; gap: 0; }
   .event-time { min-width: 58px; }
 }
+
+/* Cloud mode */
+.brand { display: inline-flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sync { font-size: .72rem; font-weight: 600; color: var(--muted); }
+.sync-offline { color: var(--danger); }
+.invite-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.3rem; font-weight: 700; letter-spacing: .06em; margin: 8px 0; user-select: all; }
+.link { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+.center-self { align-self: center; }

@@ -1,4 +1,5 @@
-// Core data model for Family Huddle. Everything is stored locally in the browser.
+// Core data model for Family Huddle.
+import type { ExtractedEvent } from '../../supabase/functions/_shared/extraction';
 
 export type MemberRole = 'parent' | 'child';
 
@@ -68,18 +69,7 @@ export interface AppState {
 }
 
 /** An event as extracted from a document, before the family reviews it. */
-export interface DraftEvent {
-  title: string;
-  date: string;
-  startTime?: string;
-  endTime?: string;
-  location?: string;
-  category: EventCategory;
-  /** Names as they appear in the document (e.g. "Liam", "1st grade"). */
-  who: string[];
-  notes?: string;
-  prep: { text: string; daysBefore: number }[];
-}
+export type DraftEvent = ExtractedEvent;
 
 export type PlanTaskKind = 'prep' | 'get-ready' | 'travel' | 'event' | 'return';
 

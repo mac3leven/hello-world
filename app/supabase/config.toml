@@ -1,0 +1,5 @@
+# Minimal Supabase CLI config. `supabase link` + `supabase db push` + `supabase functions deploy extract`.
+project_id = "family-huddle"
+
+[functions.extract]
+verify_jwt = true

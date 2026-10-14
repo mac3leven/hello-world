@@ -15,7 +15,8 @@ It pulls out the dates, asks a few quick questions, and gives you:
 cd app
 npm install
 npm run dev        # http://localhost:5173
-npm test           # unit tests (parser, planner, questions, calendar export)
+npm test           # unit tests (parser, planner, questions, sync, calendar export)
+supabase/tests/run-local.sh  # database security tests (needs local Postgres)
 npm run build      # static site in dist/, can be hosted anywhere (Netlify, GitHub Pages, Cloudflare Pages)
 ```
 
@@ -38,14 +39,13 @@ npm run build      # static site in dist/, can be hosted anywhere (Netlify, GitH
 **Learning as it goes.** The app asks once how long the drive is to a new place and how long each person takes to get ready.
 Those answers are saved and reused, so it asks fewer questions over time.
 
-## Privacy and security
+## Two modes
 
-- **Local-first.** Everything is stored in this browser's `localStorage`. No account, no server, no tracking.
-- Document contents leave the device only when you use the AI reader, and then only to `api.anthropic.com`.
-- The API key is stored only on this device and is **left out of backup files** on purpose.
-- **Known trade-off:** the key sits in browser storage, so anything running on the page could read it.
-  That's fine for a personal tool. Before sharing this with other families, move the API call behind a small backend
-  (see roadmap) so the key never reaches the browser.
+- **Local mode** (default): no account, everything stays in this browser. The optional AI reader uses your own API key from the browser.
+- **Shared family space** (cloud mode): both parents sign in and see the same plan, synced live. The AI reader runs on the server,
+  so no key is ever on a phone. Turn it on by following [SETUP.md](SETUP.md), which also explains the security model.
+
+Either way it can be added to the iPhone Home Screen and works offline.
 
 ## Code map
 
@@ -55,19 +55,21 @@ src/lib/
   planner.ts         events → plan tasks with dependencies, leave-by times, conflict detection
   questions.ts       what to ask the family (drive times, get-ready times, who/when)
   simpleParser.ts    offline date/time/location extraction from text
-  aiExtract.ts       Claude-powered extraction from PDFs, images, and text (loaded only when used)
+  aiLocal.ts         local mode: Claude extraction from the browser (loaded only when used)
+  cloud.ts           cloud mode: Supabase client, invites, server-side extraction
+  sync.ts            app state ⇄ database rows, change detection
+  useCloudState.ts   live sync hook (optimistic edits, offline retry, realtime updates)
   calendarExport.ts  .ics (with "start getting ready" alarms), Google Calendar links, Notion CSV
-  store.ts           localStorage persistence
-src/components/      Home, AddStuff, Timeline, Family, Onboarding, EventEditor
+  store.ts           local-mode persistence
+src/components/      Home, AddStuff, Timeline, Family, Onboarding, EventEditor, CloudGate (sign-in/join)
+supabase/
+  migrations/        tables, row-level security, invite RPCs
+  functions/extract  edge function that reads documents with Claude
+  functions/_shared  extraction prompt + schema shared by browser and server
+  tests/             security tests for the database (run-local.sh)
+public/              manifest, icons, service worker, security headers
 ```
 
-## Roadmap ideas
+## Roadmap
 
-1. **Live calendar sync.** Two-way Google Calendar (OAuth) and Apple via CalDAV, plus a subscribable feed URL so updates show up automatically instead of being re-imported.
-2. **Notion API sync** to a family database, instead of a CSV import.
-3. **Shared family space.** A small backend (e.g. Supabase or Cloudflare Workers + D1) so both parents see the same plan, with the AI call proxied server-side.
-4. **Real drive times** from a maps API, adjusted for time of day.
-5. **Email forwarding.** Forward the school email to a family address and it lands in *Add*.
-6. **Recurring events and templates**, like a "game day" checklist reused every Saturday.
-7. **Workload view.** Who's driving how much this week, so it stays balanced between parents.
-8. **PWA/mobile app** with push notifications for "start getting ready" reminders.
+See [ROADMAP.md](ROADMAP.md). Next up: an Apple Calendar subscription feed and "get ready" push reminders.

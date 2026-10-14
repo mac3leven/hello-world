@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { DocumentInput } from '../lib/aiExtract';
+import { fileToDocument, type DocumentInput } from '../lib/documents';
 import { toDate, formatDay } from '../lib/dates';
 import { normalizePlace, uid } from '../lib/id';
 import { matchMembers, questionsFor, type Question } from '../lib/questions';
@@ -10,12 +10,14 @@ import { CATEGORY_LABEL, Field, MemberPicker } from './common';
 interface Props {
   state: AppState;
   update: (fn: (s: AppState) => AppState) => void;
+  /** Cloud mode: the AI reader runs on the family's server, no key needed on this device. */
+  cloud: boolean;
   onDone: () => void;
 }
 
 type Row = DraftEvent & { include: boolean; memberIds: string[] };
 
-export function AddStuff({ state, update, onDone }: Props) {
+export function AddStuff({ state, update, cloud, onDone }: Props) {
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -26,21 +28,24 @@ export function AddStuff({ state, update, onDone }: Props) {
   const [ready, setReady] = useState<Record<string, number>>({});
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const hasKey = !!state.settings.apiKey;
+  const hasKey = cloud || !!state.settings.apiKey;
   const needsAi = !!file && file.type !== 'text/plain' && !file.name.endsWith('.txt');
 
   async function read() {
     setError(null);
     setBusy(true);
-    // The AI reader (and the Anthropic SDK) only loads when it's needed.
-    let ai: typeof import('../lib/aiExtract') | undefined;
+    // The local AI reader (and the Anthropic SDK) only loads when it's needed.
+    let ai: typeof import('../lib/aiLocal') | undefined;
     try {
-      ai = await import('../lib/aiExtract');
-      const doc: DocumentInput | null = file ? await ai.fileToDocument(file) : text.trim() ? { kind: 'text', name: 'Pasted text', text } : null;
+      const doc: DocumentInput | null = file ? await fileToDocument(file) : text.trim() ? { kind: 'text', name: 'Pasted text', text } : null;
       if (!doc) return;
       let drafts: DraftEvent[];
-      if (hasKey) {
-        drafts = await ai.extractWithClaude(state.settings.apiKey!, doc, state.members);
+      if (cloud) {
+        const { extractCloud } = await import('../lib/cloud');
+        drafts = await extractCloud(doc);
+      } else if (hasKey) {
+        ai = await import('../lib/aiLocal');
+        drafts = await ai.extractLocal(state.settings.apiKey!, doc, state.members);
       } else if (doc.kind === 'text') {
         drafts = parseText(doc.text);
       } else {
@@ -89,7 +94,11 @@ export function AddStuff({ state, update, onDone }: Props) {
         <button className="btn primary big" disabled={busy || (!file && !text.trim())} onClick={read}>
           {busy ? 'Reading… (this can take a minute)' : hasKey ? '✨ Read it with AI' : 'Find the dates'}
         </button>
-        {hasKey && <p className="small muted">The document is sent to Anthropic to be read. Nothing else leaves this device.</p>}
+        {hasKey && (
+          <p className="small muted">
+            {cloud ? "The document is sent to your family's server and read by Claude. It isn't stored." : 'The document is sent to Anthropic to be read. Nothing else leaves this device.'}
+          </p>
+        )}
       </div>
     );
   }

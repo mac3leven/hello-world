@@ -9,13 +9,14 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "test:db": "supabase/tests/run-local.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
+    "@supabase/supabase-js": "^2.117.3",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "zod": "^4.6.7"
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
