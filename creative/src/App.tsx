@@ -5,6 +5,7 @@ import { navigate, useRoute, type Route } from './lib/router';
 import { useStore } from './lib/store';
 import { CoachStep, GoalsStep, StrengthsStep, Welcome } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
+import { DraftEditor, IdeaInbox, NewProject, ProjectScreen, RevisionHistory, StudioHome } from './screens/Studio';
 import { EvidenceScreen, ProfileScreen } from './screens/Profile';
 import { SettingsScreen } from './screens/Settings';
 
@@ -35,17 +36,17 @@ function screenFor(route: Route): ReactNode {
     case 'feedback':
       return <FeedbackScreen key={p.attemptId} attemptId={p.attemptId} />;
     case 'studio':
-      return <Placeholder id="S5" space="studio" title="Studio" purpose="Projects, idea inbox, recent drafts, quick capture." links={[{ href: '#/studio/ideas', label: 'Idea inbox' }, { href: '#/studio/new', label: 'New project' }]} />;
+      return <StudioHome />;
     case 'ideas':
-      return <Placeholder id="S6" space="studio" title="Idea inbox" purpose="Captured fragments: edit, attach to a project, archive." />;
+      return <IdeaInbox />;
     case 'new-project':
-      return <Placeholder id="S7" space="studio" title="New project" purpose="Name, type, intent, optional goal." />;
+      return <NewProject ideaId={route.query.get('idea') ?? undefined} />;
     case 'project':
-      return <Placeholder id="S8" space="studio" title="Project" purpose="Intent, status, drafts, notes, related learning links (reference only)." />;
+      return <ProjectScreen key={p.projectId} projectId={p.projectId} />;
     case 'draft':
-      return <Placeholder id="S9" space="studio" title="Draft editor" purpose="Text-first writing with autosave and Editor/Mentor coach access." />;
+      return <DraftEditor key={p.draftId} draftId={p.draftId} />;
     case 'history':
-      return <Placeholder id="S10" space="studio" title="Revision history" purpose="Snapshots, compare, restore as a new version (never overwrites)." />;
+      return <RevisionHistory key={p.draftId} draftId={p.draftId} />;
     case 'profile':
       return <ProfileScreen />;
     case 'evidence':

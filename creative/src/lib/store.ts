@@ -87,18 +87,17 @@ const StoreContext = createContext<StoreValue | null>(null);
 export function StoreProvider({ children, storage = localStore }: { children: ReactNode; storage?: Storage }) {
   const [state, setState] = useState<AppState>(() => storage.load());
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
-  const first = useRef(true);
+  // Skip saving when nothing changed since the last write (also avoids a false "Saving…" on load).
+  const persisted = useRef(state);
 
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
+    if (state === persisted.current) return;
     setSaveStatus('saving');
     // Short debounce so typing doesn't write on every keystroke.
     const t = setTimeout(() => {
       try {
         storage.save(state);
+        persisted.current = state;
         setSaveStatus('saved');
       } catch {
         setSaveStatus('error');
