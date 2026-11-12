@@ -2,7 +2,10 @@ import { useEffect, type ReactNode } from 'react';
 import { Layout } from './components/Layout';
 import { navigate, useRoute, type Route } from './lib/router';
 import { useStore } from './lib/store';
+import { CoachStep, GoalsStep, StrengthsStep, Welcome } from './screens/Onboarding';
 import { Placeholder } from './screens/Placeholder';
+import { EvidenceScreen, ProfileScreen } from './screens/Profile';
+import { SettingsScreen } from './screens/Settings';
 
 const ONBOARDING = new Set(['welcome', 'onboarding-goals', 'onboarding-strengths', 'onboarding-coach']);
 const WIDE = new Set(['draft', 'history', 'feedback', 'studio', 'academy']);
@@ -11,13 +14,13 @@ function screenFor(route: Route): ReactNode {
   const p = route.params;
   switch (route.name) {
     case 'welcome':
-      return <Placeholder id="S0" space="neutral" title="Welcome" purpose="Explain Academy, Studio, and the shared Creative Profile; start setup." links={[{ href: '#/onboarding/goals', label: 'Start setup' }]} />;
+      return <Welcome />;
     case 'onboarding-goals':
-      return <Placeholder id="S1" space="neutral" title="Goals & interests" purpose="What you want to make and learn. Multi-select, skippable." links={[{ href: '#/onboarding/strengths', label: 'Continue' }]} />;
+      return <GoalsStep />;
     case 'onboarding-strengths':
-      return <Placeholder id="S2" space="neutral" title="Strengths & friction" purpose="Self-identified strengths and challenges. No diagnostic language." links={[{ href: '#/onboarding/coach', label: 'Continue' }]} />;
+      return <StrengthsStep />;
     case 'onboarding-coach':
-      return <Placeholder id="S3" space="neutral" title="Coach & context" purpose="Feedback preferences and what the coach may use." links={[{ href: '#/', label: 'Finish' }]} />;
+      return <CoachStep />;
     case 'home':
       return <Placeholder id="S4" space="neutral" title="Home" purpose="One useful next action with a reason, recent work, active project, a profile insight." links={[{ href: '#/academy', label: 'Academy' }, { href: '#/studio', label: 'Studio' }, { href: '#/progress', label: 'Progress' }]} />;
     case 'academy':
@@ -43,15 +46,15 @@ function screenFor(route: Route): ReactNode {
     case 'history':
       return <Placeholder id="S10" space="studio" title="Revision history" purpose="Snapshots, compare, restore as a new version (never overwrites)." />;
     case 'profile':
-      return <Placeholder id="P1" space="profile" title="Creative Profile" purpose="Goals, preferences, strengths, opportunities. Your statements kept apart from coach observations." />;
+      return <ProfileScreen />;
     case 'evidence':
-      return <Placeholder id="P2" space="profile" title="Observation evidence" purpose="Why a pattern was suggested and the source records; correct or remove it." />;
+      return <EvidenceScreen key={p.observationId} id={p.observationId} />;
     case 'coach':
       return <Placeholder id="C1" space="coach" title="Coach" purpose="Conversation, mode selector, visible context chip, proposal controls." />;
     case 'progress':
       return <Placeholder id="H1" space="neutral" title="Progress & milestones" purpose="Learning history, attempts, milestones, reflective notes. Descriptive, not competitive." />;
     case 'settings':
-      return <Placeholder id="G1" space="neutral" title="Settings & privacy" purpose="Context permissions, export, delete." />;
+      return <SettingsScreen />;
     default:
       return <Placeholder id="404" space="neutral" title="Not found" purpose="That page doesn't exist." links={[{ href: '#/', label: 'Go home' }]} />;
   }
