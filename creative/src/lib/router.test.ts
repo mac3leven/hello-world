@@ -16,5 +16,7 @@ describe('router', () => {
     expect(r.query.get('mode')).toBe('editor');
     expect(r.query.get('ctx')).toBe('draft');
     expect(r.query.get('id')).toBe('d1');
+    expect(parseHash(coachHref({ ctx: 'none', conversation: 'c1' })).query.get('c')).toBe('c1');
+    expect(coachHref({ ctx: 'none' })).toBe('#/coach');
   });
 });

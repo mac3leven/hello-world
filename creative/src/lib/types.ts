@@ -181,8 +181,9 @@ export interface CoachContext {
 }
 
 export interface Proposal {
-  /** Text the user may insert into the draft named by the conversation context. */
+  /** Text the user may add to the draft in context, or save as ideas. Only ever applied by the user. */
   text: string;
+  target: 'draft' | 'ideas';
   status: 'pending' | 'accepted' | 'rejected';
 }
 

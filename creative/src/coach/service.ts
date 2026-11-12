@@ -42,8 +42,8 @@ export interface CoachRequest {
 
 export interface CoachReply {
   text: string;
-  /** Optional text the user may choose to insert into the draft in context. */
-  proposal?: string;
+  /** Optional text the user may choose to add to the draft in context, or save to the idea inbox. */
+  proposal?: { text: string; target: 'draft' | 'ideas' };
 }
 
 export interface CoachService {

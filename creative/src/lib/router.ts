@@ -83,11 +83,12 @@ export function useRoute(): Route {
 }
 
 /** Build a coach link that carries mode and context in the address. */
-export function coachHref(opts: { mode?: string; ctx?: string; id?: string } = {}): string {
+export function coachHref(opts: { mode?: string; ctx?: string; id?: string; conversation?: string } = {}): string {
   const q = new URLSearchParams();
   if (opts.mode) q.set('mode', opts.mode);
-  if (opts.ctx) q.set('ctx', opts.ctx);
+  if (opts.ctx && opts.ctx !== 'none') q.set('ctx', opts.ctx);
   if (opts.id) q.set('id', opts.id);
+  if (opts.conversation) q.set('c', opts.conversation);
   const s = q.toString();
   return `#/coach${s ? `?${s}` : ''}`;
 }

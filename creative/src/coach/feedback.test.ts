@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { exerciseById } from '../content/curriculum';
 import { analyze } from './analysis';
 import { buildFeedback } from './sampleFeedback';
+import { firstStoryLine, sampleReply } from './sampleReply';
 
 const room = exerciseById('ex-kitchen')!;
 const subtext = exerciseById('ex-subtext')!;
@@ -58,5 +59,37 @@ describe('sample feedback', () => {
     const s = analyze('INT. FERRY DECK – NIGHT\n\nWALT\nThey used to run this every hour.\n\nNORA\nI know, Dad.');
     expect(s.scriptFormat).toBe(true);
     expect(s.dialogueLines).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('sample coach replies', () => {
+  const script = 'INT. FERRY DECK – NIGHT\n\nWind. The lights shrink.\n\nWALT\nThey used to run this every hour.\n\nNORA\nI know.';
+  const draft = { id: 'd', title: 'Opening', text: script };
+
+  it('quotes the first action line of a script, not the scene heading', () => {
+    expect(firstStoryLine(script)).toBe('Wind. The lights shrink.');
+  });
+
+  it('does not give prose rhythm notes on screenplay format', () => {
+    const r = sampleReply({ mode: 'editor', message: 'weakest moment?', context: { labels: [], draft }, history: [] });
+    expect(r.text).not.toMatch(/most sentences run/);
+  });
+
+  it('Mentor answers an ending question with structure questions and no prescriptions', () => {
+    const r = sampleReply({ mode: 'mentor', message: "I'm stuck on the ending", context: { labels: [] }, history: [] });
+    expect(r.text).toMatch(/different at the end|turn/);
+    expect(r.proposal).toBeUndefined();
+  });
+
+  it('Editor offers draft text only when explicitly asked', () => {
+    const d = { ...draft, text: 'She felt so angry. She left.' };
+    expect(sampleReply({ mode: 'editor', message: 'notes?', context: { labels: [], draft: d }, history: [] }).proposal).toBeUndefined();
+    expect(sampleReply({ mode: 'editor', message: 'show me another version', context: { labels: [], draft: d }, history: [] }).proposal?.target).toBe('draft');
+  });
+
+  it('Creative Partner labels ideas as possibilities, not decisions', () => {
+    const r = sampleReply({ mode: 'partner', message: 'ideas?', context: { labels: [] }, history: [] });
+    expect(r.text).toMatch(/not decisions/);
+    expect(r.proposal?.target).toBe('ideas');
   });
 });

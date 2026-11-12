@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Layout } from './components/Layout';
+import { CoachScreen } from './screens/Coach';
 import { AcademyHome, ExerciseScreen, FeedbackScreen, LessonScreen, PathScreen } from './screens/Academy';
 import { navigate, useRoute, type Route } from './lib/router';
 import { useStore } from './lib/store';
@@ -52,7 +53,7 @@ function screenFor(route: Route): ReactNode {
     case 'evidence':
       return <EvidenceScreen key={p.observationId} id={p.observationId} />;
     case 'coach':
-      return <Placeholder id="C1" space="coach" title="Coach" purpose="Conversation, mode selector, visible context chip, proposal controls." />;
+      return <CoachScreen key={`${route.query.get('ctx') ?? 'none'}:${route.query.get('id') ?? ''}`} query={route.query} />;
     case 'progress':
       return <Placeholder id="H1" space="neutral" title="Progress & milestones" purpose="Learning history, attempts, milestones, reflective notes. Descriptive, not competitive." />;
     case 'settings':
