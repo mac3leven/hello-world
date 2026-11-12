@@ -80,6 +80,8 @@ interface StoreValue {
   update: (fn: (s: AppState) => AppState) => void;
   replace: (s: AppState) => void;
   saveStatus: SaveStatus;
+  /** Another tab/window saved changes; reloading picks them up (simple conflict recovery). */
+  externalChange: boolean;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -106,10 +108,17 @@ export function StoreProvider({ children, storage = localStore }: { children: Re
     return () => clearTimeout(t);
   }, [state, storage]);
 
+  const [externalChange, setExternalChange] = useState(false);
+  useEffect(() => {
+    const on = (e: StorageEvent) => { if (e.key === STORAGE_KEY) setExternalChange(true); };
+    window.addEventListener('storage', on);
+    return () => window.removeEventListener('storage', on);
+  }, []);
+
   const update = useCallback((fn: (s: AppState) => AppState) => setState(fn), []);
   const replace = useCallback((s: AppState) => setState(s), []);
 
-  return createElement(StoreContext.Provider, { value: { state, update, replace, saveStatus } }, children);
+  return createElement(StoreContext.Provider, { value: { state, update, replace, saveStatus, externalChange } }, children);
 }
 
 export function useStore(): StoreValue {

@@ -1,11 +1,13 @@
 import { useEffect, type ReactNode } from 'react';
 import { Layout } from './components/Layout';
 import { CoachScreen } from './screens/Coach';
+import { HomeScreen } from './screens/Home';
+import { ProgressScreen } from './screens/Progress';
+import { PageHeader } from './components/ui';
 import { AcademyHome, ExerciseScreen, FeedbackScreen, LessonScreen, PathScreen } from './screens/Academy';
 import { navigate, useRoute, type Route } from './lib/router';
 import { useStore } from './lib/store';
 import { CoachStep, GoalsStep, StrengthsStep, Welcome } from './screens/Onboarding';
-import { Placeholder } from './screens/Placeholder';
 import { DraftEditor, IdeaInbox, NewProject, ProjectScreen, RevisionHistory, StudioHome } from './screens/Studio';
 import { EvidenceScreen, ProfileScreen } from './screens/Profile';
 import { SettingsScreen } from './screens/Settings';
@@ -25,7 +27,7 @@ function screenFor(route: Route): ReactNode {
     case 'onboarding-coach':
       return <CoachStep />;
     case 'home':
-      return <Placeholder id="S4" space="neutral" title="Home" purpose="One useful next action with a reason, recent work, active project, a profile insight." links={[{ href: '#/academy', label: 'Academy' }, { href: '#/studio', label: 'Studio' }, { href: '#/progress', label: 'Progress' }]} />;
+      return <HomeScreen />;
     case 'academy':
       return <AcademyHome />;
     case 'path':
@@ -55,11 +57,11 @@ function screenFor(route: Route): ReactNode {
     case 'coach':
       return <CoachScreen key={`${route.query.get('ctx') ?? 'none'}:${route.query.get('id') ?? ''}`} query={route.query} />;
     case 'progress':
-      return <Placeholder id="H1" space="neutral" title="Progress & milestones" purpose="Learning history, attempts, milestones, reflective notes. Descriptive, not competitive." />;
+      return <ProgressScreen />;
     case 'settings':
       return <SettingsScreen />;
     default:
-      return <Placeholder id="404" space="neutral" title="Not found" purpose="That page doesn't exist." links={[{ href: '#/', label: 'Go home' }]} />;
+      return <><PageHeader space="neutral" title="Page not found" /><a className="btn" href="#/">Go home</a></>;
   }
 }
 

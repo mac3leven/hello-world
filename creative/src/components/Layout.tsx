@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { coachHref, type Route } from '../lib/router';
+import { useStore } from '../lib/store';
 import type { Space } from './ui';
 
 const NAV: { href: string; label: string; icon: string; match: (r: Route) => boolean; space: Space }[] = [
@@ -17,6 +18,7 @@ export function spaceForRoute(r: Route): Space {
 /** Desktop: persistent left rail. Mobile: bottom tabs + a Coach button on every workspace (PRD §10). */
 export function Layout({ route, children, wide }: { route: Route; children: ReactNode; wide?: boolean }) {
   const space = spaceForRoute(route);
+  const { externalChange } = useStore();
   return (
     <div className="shell">
       <nav className="rail" aria-label="Main">
@@ -47,7 +49,15 @@ export function Layout({ route, children, wide }: { route: Route; children: Reac
           <a className="brand" href="#/">✍️ Creative</a>
           <a className="btn ghost small" href="#/settings" aria-label="Settings and privacy">⚙︎ Settings</a>
         </div>
-        <main className={`content${wide ? ' wide' : ''}`}>{children}</main>
+        <main className={`content${wide ? ' wide' : ''}`}>
+          {externalChange && (
+            <div className="notice row between" role="alert">
+              <span>This app was changed in another tab or window. Reload to see the latest — edits made here before reloading may replace them.</span>
+              <button className="btn small" onClick={() => location.reload()}>Reload</button>
+            </div>
+          )}
+          {children}
+        </main>
       </div>
 
       {route.name !== 'coach' && <a className="coach-fab" href={coachHref()}>💬 Coach</a>}
