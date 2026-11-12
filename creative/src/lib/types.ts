@@ -74,6 +74,8 @@ export interface FeedbackItem {
   explanation: string;
   /** Opportunities end with an actionable question or mini-exercise. */
   question?: string;
+  /** A general encouragement (e.g. "you finished a draft"), not evidence about this craft dimension. */
+  general?: boolean;
 }
 
 export interface Feedback {

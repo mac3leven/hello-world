@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Layout } from './components/Layout';
+import { AcademyHome, ExerciseScreen, FeedbackScreen, LessonScreen, PathScreen } from './screens/Academy';
 import { navigate, useRoute, type Route } from './lib/router';
 import { useStore } from './lib/store';
 import { CoachStep, GoalsStep, StrengthsStep, Welcome } from './screens/Onboarding';
@@ -24,15 +25,15 @@ function screenFor(route: Route): ReactNode {
     case 'home':
       return <Placeholder id="S4" space="neutral" title="Home" purpose="One useful next action with a reason, recent work, active project, a profile insight." links={[{ href: '#/academy', label: 'Academy' }, { href: '#/studio', label: 'Studio' }, { href: '#/progress', label: 'Progress' }]} />;
     case 'academy':
-      return <Placeholder id="A1" space="academy" title="Academy" purpose="Learning paths, where you left off, recommended practice." links={[{ href: '#/academy/path/seeing', label: 'A learning path' }]} />;
+      return <AcademyHome />;
     case 'path':
-      return <Placeholder id="A2" space="academy" title={`Learning path: ${p.pathId}`} purpose="Path purpose, lessons in suggested (never locked) order, progress." links={[{ href: '#/academy/lesson/specific-detail', label: 'A lesson' }]} />;
+      return <PathScreen pathId={p.pathId} />;
     case 'lesson':
-      return <Placeholder id="A3" space="academy" title={`Lesson: ${p.lessonId}`} purpose="Concept, marked examples, practice invitation, ask the Instructor." links={[{ href: '#/academy/exercise/ex-kitchen', label: 'Its exercise' }]} />;
+      return <LessonScreen key={p.lessonId} lessonId={p.lessonId} />;
     case 'exercise':
-      return <Placeholder id="A4" space="academy" title={`Exercise: ${p.exerciseId}`} purpose="Prompt, intention, response editor, save and submit for Academy feedback." />;
+      return <ExerciseScreen key={p.exerciseId} exerciseId={p.exerciseId} />;
     case 'feedback':
-      return <Placeholder id="A5" space="academy" title="Feedback & revision" purpose="Strengths, craft observations, questions, revise and compare, optional explicit link to Studio." />;
+      return <FeedbackScreen key={p.attemptId} attemptId={p.attemptId} />;
     case 'studio':
       return <Placeholder id="S5" space="studio" title="Studio" purpose="Projects, idea inbox, recent drafts, quick capture." links={[{ href: '#/studio/ideas', label: 'Idea inbox' }, { href: '#/studio/new', label: 'New project' }]} />;
     case 'ideas':
