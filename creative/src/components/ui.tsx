@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useStore, type SaveStatus } from '../lib/store';
 
 export type Space = 'academy' | 'studio' | 'coach' | 'profile' | 'neutral';
@@ -84,5 +84,27 @@ export function Choices<T extends string>({ options, value, onChange, labels }: 
         );
       })}
     </div>
+  );
+}
+
+/** Two-step confirmation on the page itself (browser confirm() dialogs are blocked in some viewers). */
+export function ConfirmButton({ children, question, confirmLabel = 'Yes, delete', onConfirm, className = 'btn danger', disabled }: {
+  children: ReactNode;
+  question: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  className?: string;
+  disabled?: boolean;
+}) {
+  const [asking, setAsking] = useState(false);
+  if (!asking) return <button type="button" className={className} disabled={disabled} onClick={() => setAsking(true)}>{children}</button>;
+  return (
+    <span className="confirm" role="alert">
+      <span className="small">{question}</span>
+      <span className="row">
+        <button type="button" className="btn small danger" onClick={() => { setAsking(false); onConfirm(); }}>{confirmLabel}</button>
+        <button type="button" className="btn small" onClick={() => setAsking(false)} autoFocus>Cancel</button>
+      </span>
+    </span>
   );
 }

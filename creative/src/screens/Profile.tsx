@@ -1,7 +1,7 @@
 // P1 Creative Profile + P2 Evidence. Your statements are kept apart from coach observations (FR-05).
 
 import { useState } from 'react';
-import { Choices, Empty, PageHeader } from '../components/ui';
+import { Choices, ConfirmButton, Empty, PageHeader } from '../components/ui';
 import { exerciseById } from '../content/curriculum';
 import { now } from '../lib/id';
 import {
@@ -237,10 +237,10 @@ export function EvidenceScreen({ id }: { id: string }) {
         {o.dismissedAt
           ? <button className="btn" onClick={() => set({ dismissedAt: undefined })}>Restore</button>
           : <button className="btn" onClick={() => { set({ dismissedAt: now() }); navigate('/profile'); }}>Dismiss</button>}
-        <button
-          className="btn danger"
-          onClick={() => {
-            if (!confirm('Remove this observation and its evidence trail? Your original work is not affected.')) return;
+        <ConfirmButton
+          question="Remove this observation and its evidence trail? Your original work is not affected."
+          confirmLabel="Remove"
+          onConfirm={() => {
             update((s) => ({
               ...s,
               observations: s.observations.filter((x) => x.id !== o.id),
@@ -253,7 +253,7 @@ export function EvidenceScreen({ id }: { id: string }) {
           }}
         >
           Remove permanently
-        </button>
+        </ConfirmButton>
       </div>
     </>
   );

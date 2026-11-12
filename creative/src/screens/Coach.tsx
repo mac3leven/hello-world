@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { resolveContext } from '../coach/context';
 import { coach } from '../coach/service';
-import { PageHeader } from '../components/ui';
+import { ConfirmButton, PageHeader } from '../components/ui';
 import { now, uid } from '../lib/id';
 import { formatDateTime, MODE_BLURB, MODE_LABEL } from '../lib/labels';
 import { coachHref, navigate } from '../lib/router';
@@ -121,7 +121,7 @@ export function CoachScreen({ query }: { query: URLSearchParams }) {
   };
 
   const forget = () => {
-    if (!existing || !confirm('Forget this conversation? It will be deleted from this device.')) return;
+    if (!existing) return;
     update((s) => ({ ...s, conversations: s.conversations.filter((c) => c.id !== existing.id) }));
     navigate(coachHref({ mode }).slice(1), { replace: true });
   };
@@ -152,7 +152,7 @@ export function CoachScreen({ query }: { query: URLSearchParams }) {
           <span className="context-chip" title="Exactly what the coach can see in this conversation">👁 Can see: {resolved.labels.join(' · ')}</span>
           <div className="row">
             {context.type !== 'none' && <a className="btn small" href={coachHref({ mode })}>Start context-free</a>}
-            {existing && <button className="btn small ghost danger" onClick={forget}>Forget this conversation</button>}
+            {existing && <ConfirmButton className="btn small ghost danger" question="Delete this conversation from this device?" confirmLabel="Forget it" onConfirm={forget}>Forget this conversation</ConfirmButton>}
           </div>
         </div>
         {withheld.length > 0 && (

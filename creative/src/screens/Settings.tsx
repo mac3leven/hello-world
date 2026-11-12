@@ -2,11 +2,12 @@
 
 import { useRef, useState } from 'react';
 import { PermissionToggles } from '../components/Permissions';
-import { PageHeader } from '../components/ui';
+import { ConfirmButton, PageHeader } from '../components/ui';
 import { now } from '../lib/id';
 import { navigate } from '../lib/router';
 import { withSampleWork } from '../lib/seed';
 import { emptyState, exportJson, normalize, useStore } from '../lib/store';
+import type { AppState } from '../lib/types';
 
 function download(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -24,17 +25,29 @@ export function SettingsScreen() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [confirmText, setConfirmText] = useState('');
   const [message, setMessage] = useState('');
+  const [exportText, setExportText] = useState('');
+  const [pasted, setPasted] = useState('');
+  const [pendingImport, setPendingImport] = useState<AppState | null>(null);
   const hasSample = state.projects.some((p) => isSample(p.title)) || state.ideas.some((i) => isSample(i.text));
 
-  const importFile = async (f: File) => {
+  const readImport = (text: string) => {
     try {
-      const parsed = JSON.parse(await f.text());
-      const data = normalize(parsed.data ?? parsed);
-      if (!confirm('Replace everything in this browser with the imported file?')) return;
-      replace(data);
-      setMessage('Imported. Your data has been replaced with the file contents.');
+      const parsed = JSON.parse(text);
+      setPendingImport(normalize(parsed.data ?? parsed));
+      setMessage('');
     } catch {
-      setMessage("That file couldn't be read. Choose a file exported from this app.");
+      setMessage("That couldn't be read. Use the text or file exported from this app.");
+    }
+  };
+
+  const showExport = () => setExportText(exportJson(state));
+  const copyExport = async () => {
+    try {
+      await navigator.clipboard.writeText(exportText);
+      setMessage('Copied. Paste it somewhere safe, like a note or an email to yourself.');
+    } catch {
+      (document.getElementById('export-text') as HTMLTextAreaElement | null)?.select();
+      setMessage('Copying was blocked here. The text is selected — copy it with your keyboard or long-press.');
     }
   };
 
@@ -76,12 +89,39 @@ export function SettingsScreen() {
       <h2 className="section">Where your data lives</h2>
       <div className="card">
         <p>Everything is saved in this browser on this device. There's no account or cloud copy yet, so another device won't see it.
-          Export a file to keep a backup or move your work.</p>
+          Export to keep a backup or move your work.</p>
         <div className="row">
-          <button className="btn primary" onClick={() => download(`creative-development-${now().slice(0, 10)}.json`, exportJson(state))}>Export everything (.json)</button>
+          <button className="btn primary" onClick={showExport}>Export everything</button>
           <button className="btn" onClick={() => fileRef.current?.click()}>Import from file…</button>
-          <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void importFile(f); e.target.value = ''; }} />
+          <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void f.text().then(readImport); e.target.value = ''; }} />
         </div>
+        {exportText && (
+          <div className="stack" style={{ marginTop: 12 }}>
+            <textarea id="export-text" readOnly value={exportText} style={{ minHeight: 120, fontFamily: 'var(--mono)', fontSize: '.8rem' }} aria-label="Exported data" />
+            <div className="row">
+              <button className="btn primary" onClick={() => void copyExport()}>Copy to clipboard</button>
+              <button className="btn" onClick={() => download(`creative-development-${now().slice(0, 10)}.json`, exportText)}>Download file</button>
+              <span className="small muted">Downloads may be blocked when the app is opened inside claude.ai — copying always works.</span>
+            </div>
+          </div>
+        )}
+        <details style={{ marginTop: 12 }}>
+          <summary className="small">Import by pasting exported text</summary>
+          <textarea id="import-text" value={pasted} onChange={(e) => setPasted(e.target.value)} placeholder="Paste exported text here" style={{ marginTop: 8, minHeight: 90, fontFamily: 'var(--mono)', fontSize: '.8rem' }} />
+          <button className="btn" style={{ marginTop: 8 }} disabled={!pasted.trim()} onClick={() => readImport(pasted)}>Check and import</button>
+        </details>
+        {pendingImport && (
+          <div className="notice" role="alert" style={{ marginTop: 12 }}>
+            <p style={{ marginTop: 0 }}>
+              Ready to import: {pendingImport.projects.length} projects, {pendingImport.drafts.length} drafts, {pendingImport.attempts.length} practice attempts, {pendingImport.ideas.length} ideas.
+              This <strong>replaces</strong> everything currently in this browser.
+            </p>
+            <div className="row">
+              <button className="btn danger" onClick={() => { replace(pendingImport); setPendingImport(null); setPasted(''); setMessage('Imported. Your data now matches the file.'); }}>Replace with imported data</button>
+              <button className="btn" onClick={() => setPendingImport(null)}>Cancel</button>
+            </div>
+          </div>
+        )}
       </div>
 
       <h2 className="section">Sample work</h2>
@@ -99,17 +139,17 @@ export function SettingsScreen() {
       <div className="card stack">
         <div className="row between">
           <span>Forget all coach conversations <span className="small muted">({state.conversations.length})</span></span>
-          <button className="btn danger" disabled={!state.conversations.length}
-            onClick={() => { if (confirm('Delete all coach conversations? Your drafts and profile stay.')) update((s) => ({ ...s, conversations: [] })); }}>
+          <ConfirmButton disabled={!state.conversations.length} question="Delete all coach conversations? Your drafts and profile stay." confirmLabel="Forget all"
+            onConfirm={() => update((s) => ({ ...s, conversations: [] }))}>
             Forget conversations
-          </button>
+          </ConfirmButton>
         </div>
         <div className="row between">
           <span>Forget everything the coach has noticed <span className="small muted">({state.observations.filter((o) => o.kind === 'inferred').length})</span></span>
-          <button className="btn danger" disabled={!state.observations.some((o) => o.kind === 'inferred')}
-            onClick={() => { if (confirm('Remove all coach observations from your profile? What you told us stays.')) update((s) => ({ ...s, observations: s.observations.filter((o) => o.kind !== 'inferred') })); }}>
+          <ConfirmButton disabled={!state.observations.some((o) => o.kind === 'inferred')} question="Remove all coach observations? What you told us stays." confirmLabel="Forget all"
+            onConfirm={() => update((s) => ({ ...s, observations: s.observations.filter((o) => o.kind !== 'inferred') }))}>
             Forget observations
-          </button>
+          </ConfirmButton>
         </div>
         <hr style={{ border: 0, borderTop: '1px solid var(--line)', width: '100%' }} />
         <div>

@@ -1,7 +1,7 @@
 // S5–S10 Studio: independent work. Nothing here is assigned, graded, or required by the Academy.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Empty, PageHeader, SaveState } from '../components/ui';
+import { ConfirmButton, Empty, PageHeader, SaveState } from '../components/ui';
 import { exerciseById, lessonById } from '../content/curriculum';
 import { now, uid } from '../lib/id';
 import { formatDate, formatDateTime, PROJECT_STATUS_LABEL, PROJECT_TYPE_LABEL, wordCount } from '../lib/labels';
@@ -279,11 +279,13 @@ export function ProjectScreen({ projectId }: { projectId: string }) {
           </label>
           <label className="field"><span>Intent</span><textarea value={p.intent} onChange={(e) => set({ intent: e.target.value })} /></label>
           <label className="field"><span>Goal</span><input type="text" value={p.goal ?? ''} onChange={(e) => set({ goal: e.target.value })} /></label>
-          <button className="btn danger" onClick={() => {
-            if (!confirm(`Delete “${p.title}” and all its drafts and history? Attached ideas go back to your inbox. This can't be undone.`)) return;
-            update((s) => deleteProject(s, p.id));
-            navigate('/studio', { replace: true });
-          }}>Delete project</button>
+          <ConfirmButton
+            question={`Delete “${p.title}” and all its drafts and history? Attached ideas go back to your inbox. This can't be undone.`}
+            confirmLabel="Delete project"
+            onConfirm={() => { update((s) => deleteProject(s, p.id)); navigate('/studio', { replace: true }); }}
+          >
+            Delete project
+          </ConfirmButton>
         </div>
       ) : (
         <div className="card soft">
